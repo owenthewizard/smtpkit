@@ -1,0 +1,43 @@
+[package]
+name = "smtpkit"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bstr = { version = "1.0", default-features = false, features = ["unicode", "alloc"] }
+bytes = { version = "1.10", default-features = false }
+
+# codec
+tokio = { version = "1.45", features = ["net"], optional = true }
+tokio-util = { version = "0.7", features = ["codec"], optional = true }
+tokio-stream = { version = "0.1.17", optional = true }
+
+# parse
+thiserror = { version = "2.0.12", optional = true, default-features = false }
+derive_more = { version = "2.0.1", features = ["as_ref", "display"] }
+bitflags = "2.9.1"
+
+[features]
+default = ["parse"]
+
+std = ["bstr/std", "bytes/std", "thiserror?/std", "derive_more/std", "bitflags/std"]
+
+codec = [
+    "dep:tokio",
+    "dep:tokio-util",
+    "dep:tokio-stream",
+    "parse",
+    "std",
+]
+
+parse = ["dep:thiserror"]
+
+[dev-dependencies]
+futures-util = { version = "0.3.31", default-features = false, features = ["sink"] }
+mutants = "0.0.3"
+rstest = "0.25.0"
+rustyline = "15.0.0"
+tokio = { version = "1.45", features = ["io-util", "macros", "rt-multi-thread"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(coverage_nightly)'] }
