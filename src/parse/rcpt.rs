@@ -1,10 +1,11 @@
 use super::*;
+use crate::rcpt::*;
 
-type RcptResult = Result<RcptParam>;
+type RcptResult = Result<Parameter>;
 
-impl Parse for RcptParam {
+impl Parse for Parameter {
     fn parse(mut input: Bytes) -> RcptResult {
-        let (key, value) = if let Some(pos) = input.iter().position(|&b| b == b'=') {
+        let (key, value) = if let Some(pos) = input.find_byte(b'=') {
             let k = input.split_to(pos);
             input.advance(1); // the `=`
             (k, Some(input))
@@ -14,11 +15,11 @@ impl Parse for RcptParam {
 
         match (key, value) {
             (notify, Some(never)) if notify.eq_ignore_ascii_case(b"NOTIFY") => {
-                Notify::parse(never).map(RcptParam::Notify)
+                Notify::parse(never).map(Parameter::Notify)
             }
 
             (orcpt, Some(x)) if orcpt.eq_ignore_ascii_case(b"ORCPT") => {
-                Email::parse(x).map(RcptParam::ORcpt)
+                Email::parse(x).map(Parameter::ORcpt)
             }
             _ => Err(Error::InvalidParameter),
         }
@@ -42,5 +43,18 @@ impl Parse for Notify {
         }
 
         Ok(flags)
+    }
+}
+
+impl Parameters<Result<Parameter>> for Rcpt {
+    fn parameters(&mut self, parameters: impl Iterator<Item = Result<Parameter>>) -> Result<()> {
+        for parameter in parameters {
+            match parameter? {
+                Parameter::ORcpt(email) => self.orcpt = Some(email),
+                Parameter::Notify(notify) => self.notify = Some(notify),
+            }
+        }
+
+        Ok(())
     }
 }

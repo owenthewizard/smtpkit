@@ -222,25 +222,6 @@ mod tests {
     }
 
     #[rstest]
-    #[case::prefix(b"prefix", b"pre", Some(b"fix".as_slice()))]
-    #[case::case_insensitive(b"PrEfIx", b"pre", Some(b"fIx".as_slice()))]
-    #[case::not_found(b"prefix", b"foo", None)]
-    #[case::empty_prefix(b"prefix", b"", Some(b"prefix".as_slice()))]
-    #[case::empty_input(b"", b"prefix", None)]
-    #[case::empty_both(b"", b"", Some(b"".as_slice()))]
-    #[case::longer_prefix(b"prefix", b"prefixes", None)]
-    fn test_strip_prefix_ci(
-        #[case] input: &'static [u8],
-        #[case] prefix: &'static [u8],
-        #[case] expected: Option<&'static [u8]>,
-    ) {
-        assert_eq!(
-            Bytes::from(input).strip_prefix_ci(prefix),
-            expected.map(Bytes::from)
-        );
-    }
-
-    #[rstest]
     #[case::bang(b'!', true)]
     #[case::asterisk(b'*', true)]
     #[case::comma(b',', true)]

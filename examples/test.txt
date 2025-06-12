@@ -1,0 +1,25 @@
+HeLo world
+MAIL FROM:<bob@example.com> SIZE=1024 ENVID=ABC123
+RCPT TO:<alice@example.com>
+RCPT TO:<a@a.com>
+DATA
+From: Bob <bob@example.com>
+To: Alice <alice@example.com>
+Subject: Test Email
+
+Hello there!
+
+This is a test email. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+Best regards,
+
+Bob
+.
+QUIT
+EHLO localhost
+MAIL FROM:<> AUTH=<>
+BDAT 8
+hello!
+BDAT 8 LAST
+world!
+QUIT

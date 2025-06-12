@@ -2,25 +2,26 @@
 
 pub(crate) use bytes::Buf;
 
-pub(crate) use super::mail::*;
-pub(crate) use super::rcpt::*;
 pub(crate) use super::*;
 
 mod parse_impl;
 pub use parse_impl::*;
 
-mod tokens;
-pub(crate) use tokens::*;
+mod iterators;
+pub(crate) use iterators::*;
 
 mod helpers;
 use helpers::*;
+
+mod parser;
+pub use parser::*;
 
 mod mail;
 mod rcpt;
 //mod rfc3461;
 mod rfc5321;
 
-pub type Result<T> = core::result::Result<T, Error>;
+type Result<T> = core::result::Result<T, Error>;
 type CommandResult = Result<Command>;
 
 #[non_exhaustive]

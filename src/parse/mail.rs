@@ -1,10 +1,11 @@
 use super::*;
+use crate::mail::*;
 
-type MailResult = Result<MailParam>;
+type MailResult = Result<Parameter>;
 
-impl Parse for MailParam {
+impl Parse for Parameter {
     fn parse(mut input: Bytes) -> MailResult {
-        let (key, value) = if let Some(pos) = input.iter().position(|&b| b == b'=') {
+        let (key, value) = if let Some(pos) = input.find_byte(b'=') {
             let k = input.split_to(pos);
             input.advance(1); // the `=`
             (k, Some(input))
@@ -25,25 +26,27 @@ impl Parse for MailParam {
 
             (auth, Some(x)) if auth.eq_ignore_ascii_case(b"AUTH") => Auth::parse(x).map(Self::Auth),
 
+            (body, Some(x)) if body.eq_ignore_ascii_case(b"BODY") => Body::parse(x).map(Self::Body),
+
             /*
             (smtputf8, None) if smtputf8.eq_ignore_ascii_case(b"SMTPUTF8") => {
-                Ok(MailParam::SmtpUtf8)
+                Ok(Parameter::SmtpUtf8)
             }
 
             (mtp, Some(x)) if mtp.eq_ignore_ascii_case(b"MT-PRIORITY") => {
-                Ok(MailParam::MtPriority(MtPriority::parse(x)?))
+                Ok(Parameter::MtPriority(MtPriority::parse(x)?))
             }
 
             (deliverby, Some(x)) if deliverby.eq_ignore_ascii_case(b"DELIVERBY") => {
-                Ok(MailParam::DeliverBy(DeliverBy::parse(x)?))
+                Ok(Parameter::DeliverBy(DeliverBy::parse(x)?))
             }
 
             (rrvs, Some(x)) if rrvs.eq_ignore_ascii_case(b"RRVS") => {
-                Ok(MailParam::Rrvs(Rrvs::parse(x)?))
+                Ok(Parameter::Rrvs(Rrvs::parse(x)?))
             }
 
             (burl, Some(x)) if burl.eq_ignore_ascii_case(b"BURL") => {
-                Ok(MailParam::Burl(Burl::parse(x)?))
+                Ok(Parameter::Burl(Burl::parse(x)?))
             }
             */
             _ => Err(Error::InvalidParameter),
@@ -74,5 +77,35 @@ impl Parse for Auth {
         }
 
         XText::parse(input).map(Self::Identity)
+    }
+}
+
+impl Parameters<Result<Parameter>> for Mail {
+    fn parameters(&mut self, parameters: impl Iterator<Item = Result<Parameter>>) -> Result<()> {
+        for parameter in parameters {
+            match parameter? {
+                Parameter::Size(size) => self.size = Some(size),
+                Parameter::Ret(ret) => self.ret = Some(ret),
+                Parameter::EnvId(envid) => self.envid = Some(envid),
+                Parameter::Auth(auth) => self.auth = Some(auth),
+                Parameter::Body(body) => self.body = Some(body),
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl Parse for Body {
+    fn parse(input: Bytes) -> Result<Self> {
+        match input.as_ref() {
+            seven_bit if seven_bit.eq_ignore_ascii_case(b"7BIT") => Ok(Self::SevenBit),
+
+            eight_bit if eight_bit.eq_ignore_ascii_case(b"8BITMIME") => Ok(Self::EightBitMime),
+
+            binary if binary.eq_ignore_ascii_case(b"BINARYMIME") => Ok(Self::BinaryMime),
+
+            _ => Err(Error::InvalidSyntax),
+        }
     }
 }
