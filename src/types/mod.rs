@@ -150,15 +150,13 @@ impl fmt::Display for Command {
                 Ok(())
             }
 
-            Self::Data(payload) => write!(f, "DATA\r\n{}\r\n.\r\n", payload.as_bstr()),
+            Self::Data(payload) => write!(f, "DATA\r\n{}\r\n.", payload.as_bstr()),
             Self::Bdat(bdat) => {
                 write!(f, "BDAT {}", bdat.payload.len())?;
                 if bdat.last {
                     write!(f, " LAST")?;
                 }
-                write!(f, "\r\n{}", bdat.payload.as_bstr())?;
-
-                Ok(())
+                write!(f, "\r\n{}", bdat.payload.as_bstr())
             }
 
             Self::Rset => write!(f, "RSET"),
@@ -193,13 +191,15 @@ pub struct Base64(Bytes);
 impl Base64 {
     /// Consume the `Base64`, returning the inner `Bytes`.
     #[cfg_attr(coverage_nightly, coverage(off))]
-    #[must_use] pub fn into_bytes(self) -> Bytes {
+    #[must_use]
+    pub fn into_bytes(self) -> Bytes {
         self.0
     }
 
     /// Get a reference to the inner `Bytes`.
     #[cfg_attr(coverage_nightly, coverage(off))]
-    #[must_use] pub fn bytes(&self) -> &Bytes {
+    #[must_use]
+    pub fn bytes(&self) -> &Bytes {
         &self.0
     }
 
@@ -209,7 +209,8 @@ impl Base64 {
     ///
     /// The inner `Bytes` must be a valid base64-encoded string.
     #[cfg_attr(coverage_nightly, coverage(off))]
-    #[must_use] pub const unsafe fn new_unchecked(bytes: Bytes) -> Self {
+    #[must_use]
+    pub const unsafe fn new_unchecked(bytes: Bytes) -> Self {
         Self(bytes)
     }
 }
@@ -232,13 +233,15 @@ pub struct Domain(Bytes);
 impl Domain {
     /// Consume the `Domain`, returning the inner `Bytes`.
     #[cfg_attr(coverage_nightly, coverage(off))]
-    #[must_use] pub fn into_bytes(self) -> Bytes {
+    #[must_use]
+    pub fn into_bytes(self) -> Bytes {
         self.0
     }
 
     /// Get a reference to the inner `Bytes`.
     #[cfg_attr(coverage_nightly, coverage(off))]
-    #[must_use] pub fn bytes(&self) -> &Bytes {
+    #[must_use]
+    pub fn bytes(&self) -> &Bytes {
         &self.0
     }
 
@@ -248,7 +251,8 @@ impl Domain {
     ///
     /// The inner `Bytes` must be a valid domain name.
     #[cfg_attr(coverage_nightly, coverage(off))]
-    #[must_use] pub const unsafe fn new_unchecked(bytes: Bytes) -> Self {
+    #[must_use]
+    pub const unsafe fn new_unchecked(bytes: Bytes) -> Self {
         Self(bytes)
     }
 }
@@ -267,7 +271,7 @@ impl fmt::Display for Host {
 }
 
 /// # Address Literal
-/// 
+///
 /// As defined in [RFC 5321](https://datatracker.ietf.org/doc/html/rfc5321#section-4.1.3). Takes the form of `[tag:content]`.
 #[derive(Debug, AsRef, Display, PartialEq, Eq, Clone, Hash)]
 #[display("{}", self.0.as_bstr())]
@@ -276,7 +280,8 @@ pub struct Address(Bytes);
 
 impl Address {
     /// Returns the `tag` and `content` parts of the address literal.
-    #[must_use] pub fn parts(&self) -> (Bytes, Bytes) {
+    #[must_use]
+    pub fn parts(&self) -> (Bytes, Bytes) {
         self.0
             .strip_brackets()
             // the only way to get an `Address` is to use `Parse`, where it will always be bracketed.
@@ -289,13 +294,15 @@ impl Address {
 
     /// Get a reference to the inner `Bytes`.
     #[cfg_attr(coverage_nightly, coverage(off))]
-    #[must_use] pub fn bytes(&self) -> &Bytes {
+    #[must_use]
+    pub fn bytes(&self) -> &Bytes {
         &self.0
     }
 
     /// Consume the `Address`, returning the inner `Bytes`.
     #[cfg_attr(coverage_nightly, coverage(off))]
-    #[must_use] pub fn into_bytes(self) -> Bytes {
+    #[must_use]
+    pub fn into_bytes(self) -> Bytes {
         self.0
     }
 
@@ -305,7 +312,8 @@ impl Address {
     ///
     /// The inner `Bytes` must be a valid address literal.
     #[cfg_attr(coverage_nightly, coverage(off))]
-    #[must_use] pub const unsafe fn new_unchecked(bytes: Bytes) -> Self {
+    #[must_use]
+    pub const unsafe fn new_unchecked(bytes: Bytes) -> Self {
         Self(bytes)
     }
 }
@@ -320,7 +328,7 @@ pub enum Mechanism {
     #[display("DIGEST-MD5")]
     DigestMd5,
     #[display("GSSAPI")]
-    Gssapi,
+    GssApi,
     #[display("LOGIN")]
     Login,
     #[display("NTLM")]
@@ -349,7 +357,8 @@ pub struct XText(Bytes);
 impl XText {
     /// Get a reference to the inner `Bytes`.
     #[cfg_attr(coverage_nightly, coverage(off))]
-    #[must_use] pub fn bytes(&self) -> &Bytes {
+    #[must_use]
+    pub fn bytes(&self) -> &Bytes {
         &self.0
     }
 
@@ -359,13 +368,15 @@ impl XText {
     ///
     /// The inner `Bytes` must be a valid `XText` string.
     #[cfg_attr(coverage_nightly, coverage(off))]
-    #[must_use] pub unsafe fn new_unchecked(bytes: Bytes) -> Self {
+    #[must_use]
+    pub unsafe fn new_unchecked(bytes: Bytes) -> Self {
         Self(bytes)
     }
 
     /// Consume the `XText`, returning the inner `Bytes`.
     #[cfg_attr(coverage_nightly, coverage(off))]
-    #[must_use] pub fn into_bytes(self) -> Bytes {
+    #[must_use]
+    pub fn into_bytes(self) -> Bytes {
         self.0
     }
 
@@ -388,14 +399,16 @@ impl XText {
     /// Return a `BytesMut` containing the decoded bytes of the `XText` string.
     ///
     /// This is a convenience method that allocates a new `BytesMut` and calls `decode_into`.
-    #[must_use] pub fn decode(&self) -> BytesMut {
+    #[must_use]
+    pub fn decode(&self) -> BytesMut {
         let mut buf = BytesMut::new();
         self.decode_into(&mut buf);
         buf
     }
 
     /// Encode the input into hexchars where necessary, returning a new `XText` string.
-    #[must_use] pub fn encode(input: &Bytes) -> Self {
+    #[must_use]
+    pub fn encode(input: &Bytes) -> Self {
         let mut ret = BytesMut::with_capacity(input.len() * 3);
 
         for &byte in input {
@@ -419,13 +432,14 @@ impl XText {
 #[derive(AsRef, derive_more::Debug, Display, PartialEq, Eq, Clone, Hash)]
 #[as_ref([u8])]
 #[debug("{:?}", self.0.as_bstr())]
-#[display("<{}>", self.0.as_bstr())]
+#[display("{}", self.0.as_bstr())]
 pub struct Email(Bytes);
 
 impl Email {
     /// Consume the `Email`, returning the inner `Bytes`.
     #[cfg_attr(coverage_nightly, coverage(off))]
-    #[must_use] pub fn into_bytes(self) -> Bytes {
+    #[must_use]
+    pub fn into_bytes(self) -> Bytes {
         self.0
     }
 
@@ -435,7 +449,8 @@ impl Email {
     ///
     /// The inner `Bytes` must take the form of `<local-part>@<domain>`.
     #[cfg_attr(coverage_nightly, coverage(off))]
-    #[must_use] pub const unsafe fn new_unchecked(bytes: Bytes) -> Self {
+    #[must_use]
+    pub const unsafe fn new_unchecked(bytes: Bytes) -> Self {
         Self(bytes)
     }
 }

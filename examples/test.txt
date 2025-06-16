@@ -18,8 +18,7 @@ Bob
 QUIT
 EHLO localhost
 MAIL FROM:<> AUTH=<>
-BDAT 8
-hello!
-BDAT 8 LAST
+BDAT 6
+hello!BDAT 8 LAST
 world!
 QUIT

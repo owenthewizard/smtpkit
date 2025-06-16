@@ -1,4 +1,4 @@
-use btoi::{btou_radix, ParseIntegerErrorKind};
+use btoi::{ParseIntegerErrorKind, btou_radix};
 
 use super::*;
 use crate::mail::{self, Mail, ReversePath};

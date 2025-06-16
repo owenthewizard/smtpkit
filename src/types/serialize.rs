@@ -1,3 +1,5 @@
+use core::fmt::Write;
+
 use super::mail::*;
 use super::rcpt::*;
 use super::*;
@@ -156,5 +158,68 @@ impl ToBytes for Rcpt {
         buf.extend_from_slice(b"RCPT TO:");
         self.to.to_bytes_into(buf);
         buf.extend_from_slice(b"\r\n");
+    }
+}
+
+impl ToBytes for Command {
+    fn to_bytes_into(&self, buf: &mut BytesMut) {
+        match self {
+            Self::Helo(helo) => helo.to_bytes_into(buf),
+            Self::Ehlo(ehlo) => ehlo.to_bytes_into(buf),
+            Self::Mail(mail) => mail.to_bytes_into(buf),
+            Self::Rcpt(rcpt) => rcpt.to_bytes_into(buf),
+            Self::Data(payload) => {
+                buf.extend_from_slice(b"DATA\r\n");
+                buf.extend_from_slice(payload);
+                buf.extend_from_slice(b"\r\n.");
+            }
+            Self::Bdat(bdat) => return bdat.to_bytes_into(buf),
+            Self::Rset => buf.extend_from_slice(b"RSET"),
+            Self::Quit => buf.extend_from_slice(b"QUIT"),
+            Self::Vrfy => todo!(),
+            Self::Expn => todo!(),
+            Self::Help => todo!(),
+            Self::Noop => buf.extend_from_slice(b"NOOP"),
+            Self::StartTls => todo!(),
+            Self::Auth {
+                mechanism,
+                initial_response,
+            } => {
+                mechanism.to_bytes_into(buf);
+                if let Some(ir) = initial_response {
+                    buf.extend_from_slice(b" ");
+                    ir.to_bytes_into(buf);
+                }
+            }
+        }
+        buf.extend_from_slice(b"\r\n");
+    }
+}
+
+impl ToBytes for Mechanism {
+    fn to_bytes_into(&self, buf: &mut BytesMut) {
+        match self {
+            Self::Plain => buf.extend_from_slice(b"PLAIN"),
+            Self::Login => buf.extend_from_slice(b"LOGIN"),
+            Self::CramMd5 => todo!(),
+            Self::Anonymous => todo!(),
+            Self::GssApi => todo!(),
+            Self::Ntlm => todo!(),
+            Self::OAuthBearer => todo!(),
+            Self::DigestMd5 => todo!(),
+            Self::ScramSha1 => todo!(),
+            Self::XOAuth2 => todo!(),
+            Self::ScramSha256 => todo!(),
+        }
+    }
+}
+
+impl ToBytes for Host {
+    fn to_bytes_into(&self, buf: &mut BytesMut) {
+        match self {
+            Self::Domain(domain) => domain.to_bytes_into(buf),
+            Self::Ip(ip) => write!(buf, "[{ip}]").unwrap(),
+            Self::Address(addr) => addr.to_bytes_into(buf),
+        }
     }
 }

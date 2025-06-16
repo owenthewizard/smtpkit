@@ -32,9 +32,12 @@ parse = ["dep:thiserror", "dep:btoi"]
 unstable_doc = []
 
 [dev-dependencies]
+futures-util = { version = "0.3.31", features = ["sink"] }
 mutants = "0.0.3"
 rstest = "0.25.0"
 rustyline = "16.0.0"
+tokio = { version = "1.45.1", features = ["rt", "rt-multi-thread", "net", "macros", "io-util"] }
+tokio-util = { version = "0.7.15", features = ["codec"] }
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 
 [lints.rust]
