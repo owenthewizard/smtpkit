@@ -3,8 +3,10 @@ use crate::rcpt::*;
 
 type RcptResult = Result<Parameter>;
 
-impl Parse for Parameter {
-    fn parse(mut input: Bytes) -> RcptResult {
+impl TryFrom<Bytes> for Parameter {
+    type Error = Error;
+
+    fn try_from(mut input: Bytes) -> RcptResult {
         let (key, value) = if let Some(pos) = input.find_byte(b'=') {
             let k = input.split_to(pos);
             input.advance(1); // the `=`
@@ -15,19 +17,21 @@ impl Parse for Parameter {
 
         match (key, value) {
             (notify, Some(never)) if notify.eq_ignore_ascii_case(b"NOTIFY") => {
-                Notify::parse(never).map(Parameter::Notify)
+                Notify::try_from(never).map(Parameter::Notify)
             }
 
             (orcpt, Some(x)) if orcpt.eq_ignore_ascii_case(b"ORCPT") => {
-                Email::parse(x).map(Parameter::ORcpt)
+                Email::try_from(x).map(Parameter::ORcpt)
             }
             _ => Err(Error::InvalidParameter),
         }
     }
 }
 
-impl Parse for Notify {
-    fn parse(input: Bytes) -> Result<Self> {
+impl TryFrom<Bytes> for Notify {
+    type Error = Error;
+
+    fn try_from(input: Bytes) -> Result<Self> {
         if input.eq_ignore_ascii_case(b"NEVER") {
             return Ok(Self::NEVER);
         }

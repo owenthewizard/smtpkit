@@ -6,7 +6,7 @@ use crate::rcpt::{self, Rcpt};
 
 pub(super) fn helo(mut tokens: Tokens) -> CommandResult {
     match (tokens.next(), tokens.next()) {
-        (Some(d), None) => Domain::parse(d).map(Host::Domain).map(Command::Helo),
+        (Some(d), None) => Domain::try_from(d).map(Host::Domain).map(Command::Helo),
         (Some(_), Some(_)) => Err(Error::UnexpectedParameter),
         (None, _) => Err(Error::MissingParameter),
     }
@@ -14,7 +14,7 @@ pub(super) fn helo(mut tokens: Tokens) -> CommandResult {
 
 pub(super) fn ehlo(mut tokens: Tokens) -> CommandResult {
     match (tokens.next(), tokens.next()) {
-        (Some(d), None) => Host::parse(d).map(Command::Ehlo),
+        (Some(d), None) => Host::try_from(d).map(Command::Ehlo),
         (Some(_), Some(_)) => Err(Error::UnexpectedParameter),
         (None, _) => Err(Error::MissingParameter),
     }
@@ -32,7 +32,7 @@ pub(super) fn mail(mut tokens: Tokens) -> CommandResult {
         ReversePath::Email(
             rp.strip_angled()
                 .ok_or(Error::InvalidSyntax)
-                .and_then(Email::parse)?,
+                .and_then(Email::try_from)?,
         )
     };
 
@@ -45,7 +45,7 @@ pub(super) fn mail(mut tokens: Tokens) -> CommandResult {
         body: None,
     };
 
-    mail.parameters(tokens.map(mail::Parameter::parse))?;
+    mail.parameters(tokens.map(mail::Parameter::try_from))?;
 
     Ok(Command::Mail(mail))
 }
@@ -57,7 +57,7 @@ pub(super) fn rcpt(mut tokens: Tokens) -> CommandResult {
         .as_ref()
         .and_then(Helpers::strip_angled)
         .ok_or(Error::InvalidSyntax)
-        .and_then(Email::parse)?;
+        .and_then(Email::try_from)?;
 
     let mut rcpt = Rcpt {
         to,
@@ -65,7 +65,7 @@ pub(super) fn rcpt(mut tokens: Tokens) -> CommandResult {
         notify: None,
     };
 
-    rcpt.parameters(tokens.map(rcpt::Parameter::parse))?;
+    rcpt.parameters(tokens.map(rcpt::Parameter::try_from))?;
 
     Ok(Command::Rcpt(rcpt))
 }

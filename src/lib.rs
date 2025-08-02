@@ -87,6 +87,10 @@ mod parse;
 #[cfg(feature = "parse")]
 pub use parse::*;
 
+mod parser;
+#[cfg(feature = "parse")]
+pub use parser::*;
+
 pub mod max {
     /// Maximum length of the local part of an email address.
     pub const LOCAL_PART: usize = 64;
@@ -105,6 +109,10 @@ pub mod max {
 }
 
 mod tracing_stub;
+#[allow(
+    unused_imports,
+    reason = "only parse feature uses tracing right now, may change"
+)]
 pub(crate) use tracing_stub as log;
 
 pub(crate) use core::fmt;

@@ -5,16 +5,12 @@ pub(crate) use bytes::Buf;
 pub(crate) use super::*;
 
 mod parse_impl;
-pub use parse_impl::*;
 
 mod iterators;
 pub(crate) use iterators::*;
 
 mod helpers;
 use helpers::*;
-
-mod parser;
-pub use parser::*;
 
 mod mail;
 mod rcpt;

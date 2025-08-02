@@ -3,8 +3,10 @@ use crate::mail::*;
 
 type MailResult = Result<Parameter>;
 
-impl Parse for Parameter {
-    fn parse(mut input: Bytes) -> MailResult {
+impl TryFrom<Bytes> for Parameter {
+    type Error = Error;
+
+    fn try_from(mut input: Bytes) -> MailResult {
         let (key, value) = if let Some(pos) = input.find_byte(b'=') {
             let k = input.split_to(pos);
             input.advance(1); // the `=`
@@ -18,15 +20,19 @@ impl Parse for Parameter {
                 .map_err(|_| Error::InvalidSyntax)
                 .map(Self::Size),
 
-            (ret, Some(x)) if ret.eq_ignore_ascii_case(b"RET") => Ret::parse(x).map(Self::Ret),
+            (ret, Some(x)) if ret.eq_ignore_ascii_case(b"RET") => Ret::try_from(x).map(Self::Ret),
 
             (envid, Some(x)) if envid.eq_ignore_ascii_case(b"ENVID") => {
-                EnvId::parse(x).map(Self::EnvId)
+                EnvId::try_from(x).map(Self::EnvId)
             }
 
-            (auth, Some(x)) if auth.eq_ignore_ascii_case(b"AUTH") => Auth::parse(x).map(Self::Auth),
+            (auth, Some(x)) if auth.eq_ignore_ascii_case(b"AUTH") => {
+                Auth::try_from(x).map(Self::Auth)
+            }
 
-            (body, Some(x)) if body.eq_ignore_ascii_case(b"BODY") => Body::parse(x).map(Self::Body),
+            (body, Some(x)) if body.eq_ignore_ascii_case(b"BODY") => {
+                Body::try_from(x).map(Self::Body)
+            }
 
             /*
             (smtputf8, None) if smtputf8.eq_ignore_ascii_case(b"SMTPUTF8") => {
@@ -34,19 +40,19 @@ impl Parse for Parameter {
             }
 
             (mtp, Some(x)) if mtp.eq_ignore_ascii_case(b"MT-PRIORITY") => {
-                Ok(Parameter::MtPriority(MtPriority::parse(x)?))
+                Ok(Parameter::MtPriority(MtPriority::try_from(x)?))
             }
 
             (deliverby, Some(x)) if deliverby.eq_ignore_ascii_case(b"DELIVERBY") => {
-                Ok(Parameter::DeliverBy(DeliverBy::parse(x)?))
+                Ok(Parameter::DeliverBy(DeliverBy::try_from(x)?))
             }
 
             (rrvs, Some(x)) if rrvs.eq_ignore_ascii_case(b"RRVS") => {
-                Ok(Parameter::Rrvs(Rrvs::parse(x)?))
+                Ok(Parameter::Rrvs(Rrvs::try_from(x)?))
             }
 
             (burl, Some(x)) if burl.eq_ignore_ascii_case(b"BURL") => {
-                Ok(Parameter::Burl(Burl::parse(x)?))
+                Ok(Parameter::Burl(Burl::try_from(x)?))
             }
             */
             _ => Err(Error::InvalidParameter),
@@ -54,8 +60,10 @@ impl Parse for Parameter {
     }
 }
 
-impl Parse for Ret {
-    fn parse(input: Bytes) -> Result<Self> {
+impl TryFrom<Bytes> for Ret {
+    type Error = Error;
+
+    fn try_from(input: Bytes) -> Result<Self> {
         match input {
             full if full.eq_ignore_ascii_case(b"FULL") => Ok(Self::Full),
             headers if headers.eq_ignore_ascii_case(b"HDRS") => Ok(Self::Headers),
@@ -64,19 +72,23 @@ impl Parse for Ret {
     }
 }
 
-impl Parse for EnvId {
-    fn parse(input: Bytes) -> Result<Self> {
-        XText::parse(input).map(Self)
+impl TryFrom<Bytes> for EnvId {
+    type Error = Error;
+
+    fn try_from(input: Bytes) -> Result<Self> {
+        XText::try_from(input).map(Self)
     }
 }
 
-impl Parse for Auth {
-    fn parse(input: Bytes) -> Result<Self> {
+impl TryFrom<Bytes> for Auth {
+    type Error = Error;
+
+    fn try_from(input: Bytes) -> Result<Self> {
         if input.as_ref() == b"<>" {
             return Ok(Self::Anonymous);
         }
 
-        XText::parse(input).map(Self::Identity)
+        XText::try_from(input).map(Self::Identity)
     }
 }
 
@@ -96,8 +108,10 @@ impl Parameters<Result<Parameter>> for Mail {
     }
 }
 
-impl Parse for Body {
-    fn parse(input: Bytes) -> Result<Self> {
+impl TryFrom<Bytes> for Body {
+    type Error = Error;
+
+    fn try_from(input: Bytes) -> Result<Self> {
         match input.as_ref() {
             seven_bit if seven_bit.eq_ignore_ascii_case(b"7BIT") => Ok(Self::SevenBit),
 

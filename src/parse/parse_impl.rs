@@ -4,13 +4,11 @@ use core::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use super::*;
 
-pub trait Parse<T = Bytes>: Sized {
-    fn parse(input: T) -> Result<Self>;
-}
+impl TryFrom<Bytes> for Command {
+    type Error = Error;
 
-impl Parse for Command {
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "debug", skip_all))]
-    fn parse(input: Bytes) -> Result<Self> {
+    fn try_from(input: Bytes) -> Result<Self> {
         let _span = log::info_span!("Command").entered();
 
         let mut tokens = Tokens::new(input, b' ');
@@ -38,9 +36,11 @@ impl Parse for Command {
     }
 }
 
-impl Parse for Host {
+impl TryFrom<Bytes> for Host {
+    type Error = Error;
+
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "debug", skip_all))]
-    fn parse(input: Bytes) -> Result<Self> {
+    fn try_from(input: Bytes) -> Result<Self> {
         let _span = log::info_span!("Host").entered();
         log::debug!(input = ?input.as_bstr());
         if let Some(bracketed) = input.strip_brackets() {
@@ -77,13 +77,15 @@ impl Parse for Host {
             }
         } else {
             log::debug!("input is not bracketed, so must be a domain");
-            Domain::parse(input).map(Self::Domain)
+            Domain::try_from(input).map(Self::Domain)
         }
     }
 }
 
-impl Parse for Email {
-    fn parse(input: Bytes) -> Result<Self> {
+impl TryFrom<Bytes> for Email {
+    type Error = Error;
+
+    fn try_from(input: Bytes) -> Result<Self> {
         let _span = log::info_span!("Email").entered();
         log::debug!(input = ?input.as_bstr());
         let (local, host) = input.rsplit_once_str(b"@").ok_or(Error::InvalidSyntax)?;
@@ -106,9 +108,11 @@ impl Parse for Email {
     }
 }
 
-impl Parse for Domain {
+impl TryFrom<Bytes> for Domain {
+    type Error = Error;
+
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "debug", skip_all))]
-    fn parse(input: Bytes) -> Result<Self> {
+    fn try_from(input: Bytes) -> Result<Self> {
         let _span = log::info_span!("Domain").entered();
         log::debug!(input = ?input.as_bstr());
         let (a, b) = input
@@ -135,9 +139,11 @@ impl Parse for Domain {
     }
 }
 
-impl Parse for XText {
+impl TryFrom<Bytes> for XText {
+    type Error = Error;
+
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "debug", skip_all))]
-    fn parse(input: Bytes) -> Result<Self> {
+    fn try_from(input: Bytes) -> Result<Self> {
         let _span = log::info_span!("XText").entered();
         log::debug!(input = ?input.as_bstr());
         let mut i = 0;

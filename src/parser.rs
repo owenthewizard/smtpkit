@@ -1,3 +1,5 @@
+#![cfg(feature = "parse")]
+
 use bstr::Finder;
 
 use crate::*;
@@ -86,7 +88,7 @@ impl Parser {
                     // consume CRLF
                     buf.advance(2);
 
-                    match Command::parse(command.freeze())? {
+                    match Command::try_from(command.freeze())? {
                         Command::Data(payload) => {
                             log::debug!("Parsed DATA");
 
