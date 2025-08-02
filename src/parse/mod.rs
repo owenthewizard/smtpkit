@@ -4,7 +4,7 @@ pub(crate) use bytes::Buf;
 
 pub(crate) use super::*;
 
-mod parse_impl;
+mod try_from;
 
 mod iterators;
 pub(crate) use iterators::*;
